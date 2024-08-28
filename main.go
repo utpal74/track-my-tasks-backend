@@ -10,6 +10,7 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/utpal74/track-my-tasks-backend/cacheutils"
 	"github.com/utpal74/track-my-tasks-backend/db"
 	"github.com/utpal74/track-my-tasks-backend/handlers"
 	"github.com/utpal74/track-my-tasks-backend/routes"
@@ -29,7 +30,15 @@ func main() {
 
 	// Initialize the task handler
 	collections := client.Database("task-tracker").Collection("tasks")
-	handler := handlers.NewTaskHandler(ctx, collections)
+
+	// Initialize redis
+	redisClient, err := cacheutils.Connect(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Initialize handler
+	handler := handlers.NewTaskHandler(ctx, collections, redisClient)
 
 	// Ensure clean up during shutdown
 	go handleShutdown(cancel, client)
