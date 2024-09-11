@@ -29,7 +29,7 @@ func Connect(ctx context.Context) (*mongo.Client, error) {
 		return nil, &pingError{err}
 	}
 
-	log.Println("Connected to MongoDB")
+	log.Printf("Connected to %v MongoDB\n", os.Getenv("MONGO_DATABASE"))
 	return client, nil
 }
 
