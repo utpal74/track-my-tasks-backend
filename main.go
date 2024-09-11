@@ -10,6 +10,7 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	"github.com/utpal74/track-my-tasks-backend/cacheutils"
 	"github.com/utpal74/track-my-tasks-backend/db"
 	"github.com/utpal74/track-my-tasks-backend/handlers"
@@ -17,9 +18,17 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+func init() {
+	if err := godotenv.Load(".env"); err != nil {
+		log.Fatalf("error loading environment : %v", err)
+		return
+	}
+	log.Println("Successfully loaded .env file")
+}
+
 func main() {
 	// Create a new context with a timeout for connecting to MongoDB
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	// connect to mongo db
@@ -28,8 +37,9 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// Initialize the task handler
-	collections := client.Database("task-tracker").Collection("tasks")
+	// Initialize the collection
+	usersCollection := client.Database(os.Getenv("MONGO_DATABASE")).Collection("users")
+	tasksCollection := client.Database(os.Getenv("MONGO_DATABASE")).Collection("tasks")
 
 	// Initialize redis
 	redisClient, err := cacheutils.Connect(ctx)
@@ -37,20 +47,21 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// Initialize handler
-	handler := handlers.NewTaskHandler(ctx, collections, redisClient)
+	// Initialize taskHandler
+	taskHandler := handlers.NewTasksHandler(ctx, tasksCollection, usersCollection, redisClient)
+	authHandler := handlers.NewAuthHandler(ctx, usersCollection, redisClient)
 
 	// Ensure clean up during shutdown
 	go handleShutdown(cancel, client)
 
 	// Set up the Gin router with CORS middleware
-	router := setupRouter(handler)
+	router := setupRouter(taskHandler, authHandler)
 
 	// Start the server
 	startServer(router)
 }
 
-func setupRouter(handler *handlers.TasksHandler) *gin.Engine {
+func setupRouter(taskHandler *handlers.TasksHandler, authHandler *handlers.AuthHandler) *gin.Engine {
 	router := gin.Default()
 
 	// Configure CORS dynamically for different environments
@@ -63,7 +74,7 @@ func setupRouter(handler *handlers.TasksHandler) *gin.Engine {
 	}))
 
 	// Set up routes
-	routes.SetupRoutes(router, handler)
+	routes.SetupRoutes(router, taskHandler, authHandler)
 
 	return router
 }
