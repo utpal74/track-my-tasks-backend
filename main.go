@@ -69,7 +69,7 @@ func setupRouter(taskHandler *handlers.TasksHandler, authHandler *handlers.AuthH
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     allowedOrigins,
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Accept"},
+		AllowHeaders:     []string{"Authorization", "Origin", "Content-Type", "Accept"},
 		AllowCredentials: true,
 	}))
 

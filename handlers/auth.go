@@ -101,8 +101,8 @@ func (handler *AuthHandler) SignInHandler(c *gin.Context) {
 
 	// Find the user in MongoDB
 	cur := handler.collections.FindOne(ctx, bson.M{
-		"username":      user.Username,
-		"password_hash": hashedPwd,
+		"username": user.Username,
+		"password": hashedPwd,
 	})
 
 	if cur.Err() != nil {
