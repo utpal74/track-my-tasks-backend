@@ -8,8 +8,8 @@ import (
 
 type User struct {
 	ID             primitive.ObjectID `json:"id" bson:"_id"`
-	Username       string             `json:"username" bson:"username"`                     // Username for traditional login
-	PasswordHash   string             `bson:"password_hash,omitempty" json:"password_hash"` // Hashed password for traditional login
+	Username       string             `json:"username" bson:"username"`           // Username for traditional login
+	PasswordHash   string             `bson:"password,omitempty" json:"password"` // Hashed password for traditional login
 	Email          string             `bson:"email,omitempty" json:"email,omitempty"`
 	OAuthProviders []OAuthProvider    `json:"oauth_providers,omitempty" bson:"oauth_providers,omitempty"` // OAuth login support
 	Task           []Task             `json:"task" bson:"task"`
