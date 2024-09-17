@@ -3,13 +3,14 @@ package cacheutils
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/redis/go-redis/v9"
 )
 
 func Connect(ctx context.Context) (*redis.Client, error) {
 	redisClient := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
+		Addr:     os.Getenv("REDIS_ADDRESS"),
 		Password: "",
 		DB:       0,
 	})

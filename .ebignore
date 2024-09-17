@@ -1,0 +1,9 @@
+# Ignore all .git files
+.git/
+.gitignore
+
+# Ignore node_modules
+node_modules/
+
+# But include the Dockerfile
+!Dockerfile
