@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -64,8 +65,10 @@ func main() {
 func setupRouter(taskHandler *handlers.TasksHandler, authHandler *handlers.AuthHandler) *gin.Engine {
 	router := gin.Default()
 
+	// Get allowed origins from environment variable
+	allowedOrigins := strings.Split(os.Getenv("ALLOWED_ORIGINS"), ",")
+
 	// Configure CORS dynamically for different environments
-	allowedOrigins := []string{"http://localhost:5173"}
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     allowedOrigins,
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
