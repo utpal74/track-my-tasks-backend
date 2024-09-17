@@ -81,7 +81,7 @@ func setupRouter(taskHandler *handlers.TasksHandler, authHandler *handlers.AuthH
 
 func startServer(router *gin.Engine) {
 	srv := &http.Server{
-		Addr:    ":8082",
+		Addr:    os.Getenv("APP_PORT"),
 		Handler: router,
 	}
 
