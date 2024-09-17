@@ -30,11 +30,6 @@ Desktop.ini
 # Log files
 *.log
 
-# Docker
-*.dockerfile
-Dockerfile
-docker-compose.yml
-
 # Database files
 *.sqlite
 *.db
