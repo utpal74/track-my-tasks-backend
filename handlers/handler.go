@@ -35,9 +35,6 @@ func NewTasksHandler(ctx context.Context, tasksColl *mongo.Collection, usersColl
 }
 
 func (handler *TasksHandler) StatusHandler(c *gin.Context) {
-	_, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
 	c.JSON(http.StatusOK, gin.H{
 		"status": "ok",
 	})
