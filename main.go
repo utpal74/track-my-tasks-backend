@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -84,7 +85,7 @@ func setupRouter(taskHandler *handlers.TasksHandler, authHandler *handlers.AuthH
 
 func startServer(router *gin.Engine) {
 	srv := &http.Server{
-		Addr:    os.Getenv("APP_PORT"),
+		Addr:    fmt.Sprint(":" + os.Getenv("APP_PORT")),
 		Handler: router,
 	}
 
