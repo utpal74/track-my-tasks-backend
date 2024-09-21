@@ -6,6 +6,7 @@ import (
 )
 
 func SetupRoutes(router *gin.Engine, taskHandler *handlers.TasksHandler, authHandler *handlers.AuthHandler) {
+	router.GET("/status", taskHandler.StatusHandler)
 	router.POST("/signin", authHandler.SignInHandler)
 	router.POST("/signup", authHandler.SignUpHandler)
 
