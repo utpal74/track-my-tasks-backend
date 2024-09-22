@@ -21,14 +21,25 @@ import (
 )
 
 func init() {
-	if err := godotenv.Load(".env"); err != nil {
-		log.Fatalf("error loading environment : %v", err)
-		return
+	if os.Getenv("ENV") != "production" {
+		if err := godotenv.Load(".env"); err != nil {
+			log.Fatalf("error loading environment : %v", err)
+			return
+		}
+		log.Println("Successfully loaded .env file")
+	} else {
+		log.Println("Running in production mode; skipping .env loading")
 	}
-	log.Println("Successfully loaded .env file")
 }
 
 func main() {
+	// Set the Gin mode
+	if os.Getenv("ENV") == "production" {
+		gin.SetMode(gin.ReleaseMode)
+	} else {
+		gin.SetMode(gin.DebugMode)
+	}
+
 	// Create a new context with a timeout for connecting to MongoDB
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()

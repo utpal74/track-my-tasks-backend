@@ -116,7 +116,7 @@ func (handler *AuthHandler) SignInHandler(c *gin.Context) {
 	// Store the session token in Redis, valid for 10 minutes
 	err := handler.redisClient.Set(ctx, sessionToken, user.Username, 10*time.Minute).Err()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not save session in Redis"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("could not save session in Redis: %v", err)})
 		return
 	}
 
