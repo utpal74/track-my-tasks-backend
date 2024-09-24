@@ -23,14 +23,14 @@ jobs:
       - name: Create ZIP file
         id: create_zip
         run: |
-          ZIP_FILE_NAME="my-app-$(date +%Y%m%d%H%M%S).zip"
+          ZIP_FILE_NAME="track-my-tasks-backend-$(date +%Y%m%d%H%M%S).zip"
           zip -r $ZIP_FILE_NAME .  # Zip the contents of the current directory
           echo "::set-output name=zip_file::$ZIP_FILE_NAME"
 
       - name: Upload to S3
         run: |
           ZIP_FILE_NAME="${{ steps.create_zip.outputs.zip_file }}"
-          aws s3 cp $ZIP_FILE_NAME s3://my-bucket/$ZIP_FILE_NAME
+          aws s3 cp $ZIP_FILE_NAME s3://elasticbeanstalk-ap-south-1-139012926577/$ZIP_FILE_NAME
 
       - name: Create application version
         run: |
