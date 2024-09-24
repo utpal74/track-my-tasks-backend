@@ -20,6 +20,25 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-south-1  # Adjust as needed
 
+      - name: Create ZIP file
+        id: create_zip
+        run: |
+          ZIP_FILE_NAME="my-app-$(date +%Y%m%d%H%M%S).zip"
+          zip -r $ZIP_FILE_NAME .  # Zip the contents of the current directory
+          echo "::set-output name=zip_file::$ZIP_FILE_NAME"
+
+      - name: Upload to S3
+        run: |
+          ZIP_FILE_NAME="${{ steps.create_zip.outputs.zip_file }}"
+          aws s3 cp $ZIP_FILE_NAME s3://my-bucket/$ZIP_FILE_NAME
+
+      - name: Create application version
+        run: |
+          ZIP_FILE_NAME="${{ steps.create_zip.outputs.zip_file }}"
+          VERSION_LABEL=$(date +%Y%m%d%H%M%S)
+          aws elasticbeanstalk create-application-version --application track-my-tasks-backend --version-label $VERSION_LABEL --source-bundle S3Bucket=elasticbeanstalk-ap-south-1-139012926577,S3Key=$ZIP_FILE_NAME
+
       - name: Deploy to Elastic Beanstalk
         run: |
-          aws elasticbeanstalk deploy --application track-my-tasks-backend --environment ttm-app
+          VERSION_LABEL=$(date +%Y%m%d%H%M%S)
+          aws elasticbeanstalk update-environment --environment-name ttm-app --version-label $VERSION_LABEL
