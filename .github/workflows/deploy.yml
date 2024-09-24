@@ -1,0 +1,25 @@
+name: Deploy to Elastic Beanstalk
+
+on:
+  push:
+    branches:
+      - develop  # Adjust as needed
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up AWS CLI
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-south-1  # Adjust as needed
+
+      - name: Deploy to Elastic Beanstalk
+        run: |
+          aws elasticbeanstalk deploy --application track-my-tasks-backend --environment ttm-app
