@@ -24,14 +24,14 @@ jobs:
         run: |
           # Define version label and zip file name
           VERSION_LABEL=$(date +%Y%m%d%H%M%S)
-          ZIP_FILE_NAME="track-my-tasks-backend/app-$VERSION_LABEL.zip"
+          ZIP_FILE_NAME="app-$VERSION_LABEL.zip"
           BUCKET_NAME="elasticbeanstalk-ap-south-1-139012926577"  # Replace with your S3 bucket name
 
           # Zip application files
           zip -r $ZIP_FILE_NAME .  # Adjust to include your application files
 
           # Upload to S3
-          aws s3 cp $ZIP_FILE_NAME s3://$BUCKET_NAME/$ZIP_FILE_NAME
+          aws s3 cp $ZIP_FILE_NAME s3://$BUCKET_NAME/track-my-tasks-backend/$ZIP_FILE_NAME
 
           # Create a new application version in Elastic Beanstalk
           aws elasticbeanstalk create-application-version --application track-my-tasks-backend --version-label $VERSION_LABEL --source-bundle S3Bucket=$BUCKET_NAME,S3Key=$ZIP_FILE_NAME
