@@ -21,6 +21,7 @@ import (
 )
 
 func init() {
+	fmt.Println("0000000000000000- ", os.Getenv("ENV"))
 	if os.Getenv("ENV") != "production" {
 		if err := godotenv.Load(".env"); err != nil {
 			log.Printf("warning: error loading environment file: %v", err)

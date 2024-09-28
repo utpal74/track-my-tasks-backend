@@ -14,7 +14,7 @@ RUN go mod download
 # Copy the source code including .env file into the container
 COPY . .
 
-# Set environment variable
+# Set environment variable at build stage
 ENV ENV=production
 ENV MONGO_DATABASE=task_tracker
 ENV MONGO_URI=mongodb://admin:password@mongodb:27017/task_tracker?authSource=admin
@@ -36,6 +36,15 @@ COPY --from=builder /app/main /main
 
 # Copy the .env file into the container
 # COPY --from=builder /app/.env /app/.env
+
+
+# Set the environment variables again
+ENV ENV=production
+ENV MONGO_DATABASE=task_tracker
+ENV MONGO_URI=mongodb://admin:password@mongodb:27017/task_tracker?authSource=admin
+ENV REDIS_ADDRESS=redis:6379
+ENV APP_PORT=8082
+ENV ALLOWED_ORIGINS=http://localhost:5173
 
 # Expose port 8082 to the outside world
 EXPOSE 8082
