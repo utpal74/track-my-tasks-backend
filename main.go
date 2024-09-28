@@ -23,10 +23,10 @@ import (
 func init() {
 	if os.Getenv("ENV") != "production" {
 		if err := godotenv.Load(".env"); err != nil {
-			log.Fatalf("error loading environment : %v", err)
-			return
+			log.Printf("warning: error loading environment file: %v", err)
+		} else {
+			log.Println("Successfully loaded .env file")
 		}
-		log.Println("Successfully loaded .env file")
 	} else {
 		log.Println("Running in production mode; skipping .env loading")
 	}
