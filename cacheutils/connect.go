@@ -2,9 +2,9 @@ package cacheutils
 
 import (
 	"context"
-	"crypto/tls"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -16,13 +16,13 @@ func Connect(ctx context.Context) (*redis.Client, error) {
 	}
 
 	redisClient := redis.NewClient(&redis.Options{
-		Addr:     redisAddress,
-		Password: "",
-		DB:       0,
-		// DialTimeout: 10 * time.Second, // Adjust timeout as needed
-		TLSConfig: &tls.Config{
-			InsecureSkipVerify: true, // You can adjust based on your environment
-		},
+		Addr:        redisAddress,
+		Password:    "",
+		DB:          0,
+		DialTimeout: 30 * time.Second, // Adjust timeout as needed
+		// TLSConfig: &tls.Config{
+		// 	InsecureSkipVerify: true, // You can adjust based on your environment
+		// },
 	})
 
 	status, err := redisClient.Ping(ctx).Result()

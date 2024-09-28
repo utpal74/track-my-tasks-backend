@@ -26,9 +26,6 @@ WORKDIR /app
 # Copy the Pre-built binary file from the previous stage
 COPY --from=builder /app/main /main
 
-# Copy the .env file into the container
-COPY --from=builder /app/.env /app/.env
-
 # Expose port 8082 to the outside world
 EXPOSE 8082
 
