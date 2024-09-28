@@ -8,7 +8,7 @@ node_modules/
 # But include the Dockerfile
 !Dockerfile
 
-<!-- # Environment configuration files
+# Environment configuration files
 .env
 .env.local
-.env.*.local -->
+.env.*.local
