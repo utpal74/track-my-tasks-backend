@@ -2,6 +2,9 @@
 # Stage 1: Build the Go app
 FROM golang:1.22.3 AS builder
 
+# Set production environment
+ENV ENV=production
+
 # Set the Current Working Directory inside the container
 WORKDIR /app
 
