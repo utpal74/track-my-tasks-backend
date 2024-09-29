@@ -9,6 +9,7 @@ func SetupRoutes(router *gin.Engine, taskHandler *handlers.TasksHandler, authHan
 	router.GET("/", taskHandler.StatusHandler)
 	router.POST("/signin", authHandler.SignInHandler)
 	router.POST("/signup", authHandler.SignUpHandler)
+	router.POST("/signout", authHandler.SignOutHandler)
 
 	auth := router.Group("/")
 	auth.Use(authHandler.AuthMiddleware())

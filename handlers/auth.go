@@ -124,6 +124,33 @@ func (handler *AuthHandler) SignInHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "User signed in", "token": sessionToken})
 }
 
+// SignOutHandler - Sign out user and delete session from Redis
+func (handler *AuthHandler) SignOutHandler(c *gin.Context) {
+	// Get the session token from the Authorization header
+	sessionToken := c.Request.Header.Get("Authorization")
+	if sessionToken == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "No session token provided"})
+		return
+	}
+
+	// Create a new context with a timeout for this request
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// Delete the session token from Redis
+	err := handler.redisClient.Del(ctx, sessionToken).Err()
+	if err == redis.Nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Session not found"})
+		return
+	} else if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error deleting session"})
+		return
+	}
+
+	// Respond with success
+	c.JSON(http.StatusOK, gin.H{"message": "User signed out successfully"})
+}
+
 // RefreshHandler - Refresh the session token and extend its lifetime in Redis
 func (handler *AuthHandler) RefreshHandler(c *gin.Context) {
 	// Get the old session token from the request header or cookie

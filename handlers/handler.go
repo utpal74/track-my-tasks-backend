@@ -146,7 +146,8 @@ func (handler *TasksHandler) NewTaskHandler(c *gin.Context) {
 	}
 
 	log.Println("remove data from redis")
-	handler.redisClient.Del(ctx, "tasks")
+	redisKey := "tasks:" + user.ID.Hex()
+	handler.redisClient.Del(ctx, redisKey)
 
 	c.JSON(http.StatusOK, task)
 }
@@ -154,6 +155,14 @@ func (handler *TasksHandler) NewTaskHandler(c *gin.Context) {
 func (handler *TasksHandler) UpdateTaskHandler(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 8*time.Second)
 	defer cancel()
+
+	username, _ := c.Get("username")
+	var user model.User
+	err := handler.usersColl.FindOne(ctx, bson.M{"username": username}).Decode(&user)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
+		return
+	}
 
 	id := c.Param("id")
 	var taskToBeUpdated model.Task
@@ -228,7 +237,8 @@ func (handler *TasksHandler) UpdateTaskHandler(c *gin.Context) {
 		}
 
 		log.Println("remove data from redis")
-		handler.redisClient.Del(ctx, "tasks")
+		redisKey := "tasks:" + user.ID.Hex()
+		handler.redisClient.Del(ctx, redisKey)
 
 		c.JSON(http.StatusOK, gin.H{"message": "1 record updated", "matchedCount": result.MatchedCount, "modifiedCount": result.ModifiedCount})
 	} else {
@@ -239,6 +249,14 @@ func (handler *TasksHandler) UpdateTaskHandler(c *gin.Context) {
 func (handler *TasksHandler) DeleteTaskHandler(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
+
+	username, _ := c.Get("username")
+	var user model.User
+	err := handler.usersColl.FindOne(ctx, bson.M{"username": username}).Decode(&user)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
+		return
+	}
 
 	id := c.Param("id")
 	objectID, err := primitive.ObjectIDFromHex(id)
@@ -274,7 +292,8 @@ func (handler *TasksHandler) DeleteTaskHandler(c *gin.Context) {
 	}
 
 	log.Println("remove data from redis")
-	handler.redisClient.Del(ctx, "tasks")
+	redisKey := "tasks:" + user.ID.Hex()
+	handler.redisClient.Del(ctx, redisKey)
 
 	c.JSON(http.StatusOK, gin.H{"message": fmt.Sprintf("Task with id %v deleted", id)})
 }
@@ -283,7 +302,15 @@ func (handler *TasksHandler) SearchTaskHandler(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	redisKey := "task:" + c.Param("id")
+	username, _ := c.Get("username")
+	var user model.User
+	err := handler.usersColl.FindOne(ctx, bson.M{"username": username}).Decode(&user)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
+		return
+	}
+
+	redisKey := "tasks:" + user.ID.Hex()
 	cacheVal, err := handler.redisClient.Get(ctx, redisKey).Result()
 
 	if err == redis.Nil {
