@@ -7,9 +7,13 @@ import (
 	"time"
 
 	"github.com/redis/go-redis/v9"
+	"github.com/utpal74/track-my-tasks-backend/common"
+	"github.com/utpal74/track-my-tasks-backend/logger"
+	"go.uber.org/zap"
 )
 
 func Connect(ctx context.Context) (*redis.Client, error) {
+	logger := logger.FromCtx(ctx)
 	redisAddress := os.Getenv("REDIS_ADDRESS")
 	if redisAddress == "" {
 		return nil, fmt.Errorf("REDIS_ADDRESS environment variable is not set")
@@ -25,12 +29,10 @@ func Connect(ctx context.Context) (*redis.Client, error) {
 		// },
 	})
 
+	logger.Info("Pinging redis client")
 	status, err := redisClient.Ping(ctx).Result()
-	if err != nil {
-		fmt.Println("Error connecting to Redis:", err)
-		return nil, err
-	}
+	common.FailOnError(ctx, "Error connecting to Redis", err)
 
-	fmt.Println("Connected to Redis:", status)
+	logger.Info("got response from redis client", zap.String("status code", status))
 	return redisClient, nil
 }

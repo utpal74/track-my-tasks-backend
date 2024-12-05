@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -14,73 +13,61 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/utpal74/track-my-tasks-backend/cacheutils"
+	"github.com/utpal74/track-my-tasks-backend/common"
 	"github.com/utpal74/track-my-tasks-backend/db"
 	"github.com/utpal74/track-my-tasks-backend/handlers"
+	"github.com/utpal74/track-my-tasks-backend/logger"
 	"github.com/utpal74/track-my-tasks-backend/routes"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 func init() {
+	logger := logger.GetLogger()
+	defer logger.Sync()
+
 	if os.Getenv("ENV") != "production" {
-		if err := godotenv.Load(".env"); err != nil {
-			log.Printf("warning: error loading environment file: %v", err)
-		} else {
-			log.Println("Successfully loaded .env file")
-		}
+		err := godotenv.Load(".env")
+		common.FailOnError(context.TODO(), "error loading environment file", err)
+		logger.Info("Successfully loaded .env file")
 	} else {
-		log.Println("Running in production mode; skipping .env loading")
+		logger.Info("Running in production mode; skipping .env loading")
 	}
 }
 
 func main() {
-	// Set the Gin mode
-	if os.Getenv("ENV") == "production" {
-		gin.SetMode(gin.ReleaseMode)
-	} else {
-		gin.SetMode(gin.DebugMode)
-	}
+	zapLogger := logger.GetLogger()
+	defer zapLogger.Sync()
 
-	// Create a new context with a timeout for connecting to MongoDB
+	// Set the Gin mode
+	mode := gin.DebugMode
+	if os.Getenv("ENV") == "production" {
+		mode = gin.ReleaseMode
+	}
+	gin.SetMode(mode)
+
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	// connect to mongo db
+	ctx = logger.WithLogger(ctx, zapLogger)
 	client, err := db.Connect(ctx)
-	if err != nil {
-		log.Fatal(err)
-	}
+	common.FailOnError(ctx, "error connecting DB", err)
 
-	// Initialize the collection
 	usersCollection := client.Database(os.Getenv("MONGO_DATABASE")).Collection("users")
 	tasksCollection := client.Database(os.Getenv("MONGO_DATABASE")).Collection("tasks")
 
-	// Initialize redis
 	redisClient, err := cacheutils.Connect(ctx)
-	if err != nil {
-		log.Fatal(err)
-	}
+	common.FailOnError(ctx, "not able to connect to redis client", err)
 
-	// Initialize taskHandler
 	taskHandler := handlers.NewTasksHandler(ctx, tasksCollection, usersCollection, redisClient)
 	authHandler := handlers.NewAuthHandler(ctx, usersCollection, redisClient)
-
-	// Ensure clean up during shutdown
-	go handleShutdown(cancel, client)
-
-	// Set up the Gin router with CORS middleware
+	go handleShutdown(ctx, cancel, client)
 	router := setupRouter(taskHandler, authHandler)
-
-	// Start the server
-	startServer(router)
+	startServer(ctx, router)
 }
 
 func setupRouter(taskHandler *handlers.TasksHandler, authHandler *handlers.AuthHandler) *gin.Engine {
 	router := gin.Default()
-
-	// Get allowed origins from environment variable
 	allowedOrigins := strings.Split(os.Getenv("ALLOWED_ORIGINS"), ",")
-
-	// Configure CORS dynamically for different environments
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     allowedOrigins,
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
@@ -88,22 +75,21 @@ func setupRouter(taskHandler *handlers.TasksHandler, authHandler *handlers.AuthH
 		AllowCredentials: true,
 	}))
 
-	// Set up routes
 	routes.SetupRoutes(router, taskHandler, authHandler)
-
 	return router
 }
 
-func startServer(router *gin.Engine) {
+func startServer(ctx context.Context, router *gin.Engine) {
+	logger := logger.FromCtx(ctx)
 	srv := &http.Server{
 		Addr:    fmt.Sprint(":" + os.Getenv("APP_PORT")),
 		Handler: router,
 	}
 
 	go func() {
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("listen: %s\n", err)
-		}
+		err := srv.ListenAndServe()
+		common.FailOnError(ctx, "listen: ", err)
+		common.FailIfServerErrored(ctx, "listen: ", err)
 	}()
 
 	// Wait for interrupt signal to gracefully shut down the server with a timeout of 10 seconds
@@ -111,19 +97,17 @@ func startServer(router *gin.Engine) {
 	signal.Notify(quit, os.Interrupt)
 	<-quit
 
-	log.Println("Shutting down server...")
+	logger.Info("Shutting down server...")
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer shutdownCancel()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	if err := srv.Shutdown(ctx); err != nil {
-		log.Fatal("Server forced to shutdown:", err)
-	}
-
-	log.Println("Server exiting")
+	err := srv.Shutdown(shutdownCtx)
+	common.FailOnError(ctx, "Server forced to shutdown", err)
+	logger.Info("Server exiting")
 }
 
-func handleShutdown(cancel context.CancelFunc, client *mongo.Client) {
+func handleShutdown(ctx context.Context, cancel context.CancelFunc, client *mongo.Client) {
+	logger := logger.FromCtx(ctx)
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt)
 	<-quit
@@ -132,9 +116,7 @@ func handleShutdown(cancel context.CancelFunc, client *mongo.Client) {
 	cancel()
 
 	// Disconnect from MongoDB
-	if err := client.Disconnect(context.Background()); err != nil {
-		log.Fatal("Error while disconnecting MongoDB: ", err)
-	}
-
-	log.Println("Disconnected from MongoDB")
+	err := client.Disconnect(ctx)
+	common.FailOnError(ctx, "Error while disconnecting MongoDB", err)
+	logger.Info("Disconnected from MongoDB")
 }

@@ -2,35 +2,40 @@ package db
 
 import (
 	"context"
-	"log"
 	"os"
 
+	"github.com/utpal74/track-my-tasks-backend/logger"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
+	"go.uber.org/zap"
 )
 
 func Connect(ctx context.Context) (*mongo.Client, error) {
+	logger := logger.FromCtx(ctx)
+
 	// Load environment variables
 	mongoURI := os.Getenv("MONGO_URI")
 	if mongoURI == "" {
 		return nil, &configError{"MONGO_URI environment variable is not set"}
 	}
 
-	// Connect to MongoDB
 	clientOptions := options.Client().ApplyURI(mongoURI)
 	client, err := mongo.Connect(ctx, clientOptions)
-	if err != nil {
-		return nil, &connectionError{err}
-	}
+	checkAndThrowError(client, err, &connectionError{err})
 
-	// Ping MongoDB to verify the connection
-	if err := client.Ping(ctx, readpref.Primary()); err != nil {
-		return nil, &pingError{err}
-	}
-
-	log.Printf("Connected to %v MongoDB\n", os.Getenv("MONGO_DATABASE"))
+	logger.Info("pinging mongo db")
+	err = client.Ping(ctx, readpref.Primary())
+	checkAndThrowError(nil, err, &pingError{err})
+	logger.Info("mongo db ping successful", zap.String("database", os.Getenv("MONGO_DATABASE")))
 	return client, nil
+}
+
+func checkAndThrowError(params any, err error, errToThrow error) (any, error) {
+	if err != nil {
+		return nil, errToThrow
+	}
+	return params, err
 }
 
 type configError struct {
