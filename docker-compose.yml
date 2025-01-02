@@ -13,7 +13,7 @@ services:
       - MONGO_URI=mongodb+srv://utpalkumar74:Utpwd4mongo30%4092@cluster0.ufka7.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0&tls=true&tlsInsecure=true
       - APP_PORT=8080
       - REDIS_ADDRESS=redis-container:6379 # Docker service name used as the Redis hostname
-      - ALLOWED_ORIGINS=*.trackmytasks.net
+      - ALLOWED_ORIGINS=https://api.trackmytasks.net,https://staging.trackmytasks.net
     depends_on:
       - redis
 
