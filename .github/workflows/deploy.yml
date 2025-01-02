@@ -34,7 +34,7 @@ jobs:
           aws s3 cp $ZIP_FILE_NAME s3://$BUCKET_NAME/track-my-tasks-backend/$ZIP_FILE_NAME
 
           # Create a new application version in Elastic Beanstalk
-          aws elasticbeanstalk create-application-version --application track-my-tasks-backend-prod --version-label $VERSION_LABEL --source-bundle S3Bucket=$BUCKET_NAME,S3Key=track-my-tasks-backend-prod/$ZIP_FILE_NAME
+          aws elasticbeanstalk create-application-version --application track-my-tasks-backend-prod --version-label $VERSION_LABEL --source-bundle S3Bucket=$BUCKET_NAME,S3Key=track-my-tasks-backend/$ZIP_FILE_NAME
 
           # Update the environment to use the new application version
           aws elasticbeanstalk update-environment --environment-name task-tracker --version-label $VERSION_LABEL
