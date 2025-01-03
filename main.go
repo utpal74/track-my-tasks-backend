@@ -68,9 +68,6 @@ func main() {
 func setupRouter(taskHandler *handlers.TasksHandler, authHandler *handlers.AuthHandler) *gin.Engine {
 	router := gin.Default()
 	allowedOrigins := strings.Split(os.Getenv("ALLOWED_ORIGINS"), ",")
-	if len(allowedOrigins) == 0 {
-		allowedOrigins = []string{"https://trackmytasks.net", "https://staging.trackmytasks.net", "https://api.trackmytasks.net"}
-	}
 
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     allowedOrigins,
@@ -80,15 +77,6 @@ func setupRouter(taskHandler *handlers.TasksHandler, authHandler *handlers.AuthH
 	}))
 
 	routes.SetupRoutes(router, taskHandler, authHandler)
-
-	// Handle preflight requests explicitly (usually handled by CORS middleware)
-	router.OPTIONS("/*path", func(c *gin.Context) {
-		c.Header("Access-Control-Allow-Origin", strings.Join(allowedOrigins, ","))
-		c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		c.Header("Access-Control-Allow-Headers", "Authorization, Content-Type, Accept")
-		c.Status(http.StatusNoContent)
-	})
-
 	return router
 }
 
