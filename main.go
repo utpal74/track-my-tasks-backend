@@ -68,6 +68,10 @@ func main() {
 func setupRouter(taskHandler *handlers.TasksHandler, authHandler *handlers.AuthHandler) *gin.Engine {
 	router := gin.Default()
 	allowedOrigins := strings.Split(os.Getenv("ALLOWED_ORIGINS"), ",")
+	if len(allowedOrigins) == 0 {
+		allowedOrigins = []string{"https://trackmytasks.net", "https://staging.trackmytasks.net", "https://www.trackmytasks.net", "https://api.trackmytasks.net"}
+	}
+
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     allowedOrigins,
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
