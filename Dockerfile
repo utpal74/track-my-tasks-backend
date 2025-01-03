@@ -20,7 +20,7 @@ COPY . .
 # ENV MONGO_DATABASE=task_tracker
 # ENV MONGO_URI=mongodb://admin:password@mongodb:27017/task_tracker?authSource=admin
 # ENV REDIS_ADDRESS=redis:6379
-# ENV APP_PORT=8082
+# ENV APP_PORT=8080
 # ENV ALLOWED_ORIGINS=http://localhost:5173
 
 # <---- Enable below for production ---->
@@ -53,7 +53,7 @@ COPY --from=builder /app/main /main
 # ENV MONGO_DATABASE=task_tracker
 # ENV MONGO_URI=mongodb://admin:password@mongodb:27017/task_tracker?authSource=admin
 # ENV REDIS_ADDRESS=redis:6379
-# ENV APP_PORT=8082
+# ENV APP_PORT=8080
 # ENV ALLOWED_ORIGINS=http://localhost:5173
 
 # <---- Enable below for production ---->
