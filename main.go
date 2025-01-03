@@ -80,6 +80,15 @@ func setupRouter(taskHandler *handlers.TasksHandler, authHandler *handlers.AuthH
 	}))
 
 	routes.SetupRoutes(router, taskHandler, authHandler)
+
+	// Handle preflight requests explicitly (usually handled by CORS middleware)
+	router.OPTIONS("/*path", func(c *gin.Context) {
+		c.Header("Access-Control-Allow-Origin", strings.Join(allowedOrigins, ","))
+		c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		c.Header("Access-Control-Allow-Headers", "Authorization, Content-Type, Accept")
+		c.Status(http.StatusNoContent)
+	})
+
 	return router
 }
 
