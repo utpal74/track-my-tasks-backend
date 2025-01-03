@@ -1,0 +1,14 @@
+# Ignore all .git files
+.git/
+.gitignore
+
+# Ignore node_modules
+node_modules/
+
+# But include the Dockerfile
+!Dockerfile
+
+# Environment configuration files
+.env
+.env.local
+.env.*.local

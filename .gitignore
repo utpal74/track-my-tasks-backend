@@ -1,0 +1,40 @@
+# Environment configuration files
+.env
+.env.local
+.env.*.local
+
+# Node.js dependencies
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Go build artifacts
+/bin
+/pkg
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# IDE/Editor directories
+.vscode/
+.idea/
+
+# Build output
+/dist
+/build
+
+# Log files
+*.log
+
+# Database files
+*.sqlite
+*.db
+
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
