@@ -45,7 +45,13 @@ func Connect(ctx context.Context) (*redis.Client, error) {
 	defer cancel()
 
 	pong, err := client.Ping(pingCtx).Result()
-	common.FailOnError(ctx, "Error connecting to Redis", err)
+	// common.FailOnError(ctx, "Error connecting to Redis", err)
+
+	if err != nil {
+		log.Error("Redis ping failed", zap.Error(err))
+	} else {
+		log.Info("Redis ping response", zap.String("pong", pong))
+	}
 
 	log.Info("got response from redis client", zap.String("Redis ping response", pong))
 	return client, nil
