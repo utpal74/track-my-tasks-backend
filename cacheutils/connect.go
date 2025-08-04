@@ -34,10 +34,17 @@ func Connect(ctx context.Context) (*redis.Client, error) {
 		opt, err := redis.ParseURL(redisURL)
 		common.FailOnError(ctx, fmt.Sprintf("failed to parse Redis URL: %v", err), err)
 
-		opt.TLSConfig = &tls.Config{
-			ServerName: serverName,
-			InsecureSkipVerify: true,
+		// Only set TLS if using rediss:// -
+		// This is specific to platform hosting redis instance. 
+		// In this case render platform uses internal URL for communication.
+		// More info at https://dashboard.render.com/ 
+		if opt.TLSConfig == nil && opt.Addr != "" && redisURL[:8] == "rediss://" {
+			opt.TLSConfig = &tls.Config{
+				ServerName: serverName,
+				InsecureSkipVerify: true,
+			}
 		}
+
 		client = redis.NewClient(opt)
 		logger.Info("Redis client initialized", 
 			zap.String("Addr", opt.Addr),
