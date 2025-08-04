@@ -15,7 +15,6 @@ import (
 var (
 	client *redis.Client
 	redisURL, serverName string
-	opt *redis.Options
 )
 
 // Connect returns a vlid connection with redis instance
@@ -32,8 +31,7 @@ func Connect(ctx context.Context) (*redis.Client, error) {
 	// redis client setup overriden in prod
 	if os.Getenv("ENV") == "production" {
 		logger.Info("Attempt redis connection in production mode")
-		var err error
-		opt, err = redis.ParseURL(redisURL)
+		opt, err := redis.ParseURL(redisURL)
 		common.FailOnError(ctx, fmt.Sprintf("failed to parse Redis URL: %v", err), err)
 
 		opt.TLSConfig = &tls.Config{
@@ -41,13 +39,16 @@ func Connect(ctx context.Context) (*redis.Client, error) {
 			InsecureSkipVerify: true,
 		}
 		client = redis.NewClient(opt)
-		logger.Info("Redis client initialized", zap.Any("opt", opt))
+		logger.Info("Redis client initialized", 
+			zap.String("Addr", opt.Addr),
+			zap.String("Username", opt.Username),
+			zap.Bool("TLS", opt.TLSConfig != nil),
+		)
 	}
 
-	logger.Info("Ping redis with following data", 
+	logger.Info("Ping redis --", 
 		zap.String("ENV", os.Getenv("ENV")),
 		zap.String("Server name", serverName),
-		zap.Any("redisURL", opt.Addr),
 	)
 
     pong, err := client.Ping(ctx).Result()
