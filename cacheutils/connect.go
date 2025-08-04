@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/redis/go-redis/v9"
 	"github.com/utpal74/track-my-tasks-backend/common"
@@ -58,7 +59,10 @@ func Connect(ctx context.Context) (*redis.Client, error) {
 		zap.String("Server name", serverName),
 	)
 
-    pong, err := client.Ping(ctx).Result()
+	pingCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+    pong, err := client.Ping(pingCtx).Result()
 	common.FailOnError(ctx, "Error connecting to Redis", err)
 
     logger.Info("got response from redis client", zap.String("Redis ping response:", pong))
