@@ -41,7 +41,7 @@ func Connect(ctx context.Context) (*redis.Client, error) {
 	)
 
 	// Test connection
-	pingCtx, cancel := context.WithTimeout(ctx, 15*time.Second)
+	pingCtx, cancel := context.WithTimeout(ctx, 35*time.Second)
 	defer cancel()
 
 	pong, err := client.Ping(pingCtx).Result()
