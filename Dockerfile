@@ -1,32 +1,45 @@
 # Stage 1: Build the Go app
-FROM golang:1.22.3 AS builder
+# Use a robust Go image for the build environment.
+FROM golang:1.24-alpine AS builder
 
-# Set the Current Working Directory inside the container
+# Set the Current Working Directory inside the container.
 WORKDIR /app
 
-# Copy the Go Modules manifests
+# Copy the Go Modules manifests (go.mod and go.sum) to leverage Docker's layer caching.
 COPY go.mod go.sum ./
 
-# Download dependencies
+# Download dependencies. This will only run if go.mod or go.sum change.
 RUN go mod download
 
-# Copy the source code including .env file into the container
+# Copy the source code, including any configuration files like .env.
 COPY . .
 
-# Build the Go app
+# Build the Go application into a single executable binary.
+# The "-o main" flag specifies the output file name as 'main'.
 RUN go build -o main .
 
-# Stage 2: Use a base image for runtime (e.g., busybox for debugging or scratch for minimalism)
-FROM busybox
+# Stage 2: Create a minimal, production-ready image.
+# Use a minimal Alpine Linux image. Busybox is very stripped down and can sometimes
+# be missing necessary libraries that even Go binaries might link against. Alpine is a safer choice.
+FROM alpine:3.19
 
-# Set the working directory
+# Set the working directory for the application.
 WORKDIR /app
 
-# Copy the Pre-built binary file from the previous stage
-COPY --from=builder /app/main /main
+# Copy the pre-built binary from the 'builder' stage into the final image.
+# We are only copying the single executable, which keeps the final image size small.
+COPY --from=builder /app/main .
 
-# Expose port 8080 to the outside world
+# Copy the .env file from the builder stage into the final image.
+# This is the crucial step to ensure your app has access to its configuration.
+COPY --from=builder /app/.env .
+
+# Expose port 8080. This is just documentation; the port must also be mapped in docker-compose.yml.
 EXPOSE 8080
 
-# Command to run the executable
-ENTRYPOINT ["/main"]
+# The command to run the executable when the container starts.
+ENTRYPOINT ["./main"]
+
+# Add a healthcheck to your Dockerfile for production.
+# This will allow Docker to monitor if your application is actually up and running.
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 CMD wget -q http://localhost:8080/ || exit 1

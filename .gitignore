@@ -2,6 +2,7 @@
 .env
 .env.local
 .env.*.local
+.env.prod
 
 # Node.js dependencies
 node_modules/
@@ -38,3 +39,6 @@ Desktop.ini
 .elasticbeanstalk/*
 !.elasticbeanstalk/*.cfg.yml
 !.elasticbeanstalk/*.global.yml
+
+# docker override
+docker-compose.override.yml
