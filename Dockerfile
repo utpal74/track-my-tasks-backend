@@ -30,10 +30,6 @@ WORKDIR /app
 # We are only copying the single executable, which keeps the final image size small.
 COPY --from=builder /app/main .
 
-# Copy the .env file from the builder stage into the final image.
-# This is the crucial step to ensure your app has access to its configuration.
-COPY --from=builder /app/.env .
-
 # Expose port 8080. This is just documentation; the port must also be mapped in docker-compose.yml.
 EXPOSE 8080
 

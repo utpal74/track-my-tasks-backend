@@ -1,7 +1,7 @@
 # Environment configuration files
-# .env
-# .env.local
-# .env.*.local
+.env
+.env.local
+.env.*.local
 
 # But include the Dockerfile
 !Dockerfile
